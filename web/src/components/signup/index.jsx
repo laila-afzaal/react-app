@@ -41,7 +41,7 @@ export default function Signup() {
     });
 
   
-    let baseUrl = 'http://localhost:3000'
+    let baseUrl = 'https://react-weather-app-laila.netlify.app'
     try{
       let response = await axios.post(`${baseUrl}/signup`,{
         email: data.get('email'),
