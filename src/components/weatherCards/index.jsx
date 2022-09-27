@@ -12,7 +12,7 @@ let WeatherCard = ({date, temp, min, max}) => {
     //        <div> {min}°C - {max}°C </div>
     
     // </div>
-    <Card style={{ width: '18rem' }}>
+    <Card style={{ width: '18rem' }} bg='info'>
       <Card.Body>
         <Card.Title>{moment(date).format('dddd ha')}</Card.Title>
         <Card.Text>
