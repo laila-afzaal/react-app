@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4001;
 
 
 const userSchema = new mongoose.Schema({
@@ -121,39 +121,42 @@ app.post("/login", (req, res) => {
         return;
     }
 
-    let isFound = false; // https://stackoverflow.com/a/17402180/4378475
+     // check if user already exist // query email user
+     userModel.findOne({ email: body.email }, (err, data) => {
+        if (!err) {
+            console.log("data: ", data);
 
-    for (let i = 0; i < userBase.length; i++) {
-        if (userBase[i].email === body.email) {
+            if (data) { // user found
+                varifyHash(body.password, data.password).then(isMatched => {
 
-            isFound = true;
-            if (userBase[i].password === body.password) { // correct password
+                 console.log('isMatched:', isMatched);
 
-                res.status(200).send({
-                    firstName: userBase[i].firstName,
-                    lastName: userBase[i].lastName,
-                    email: userBase[i].email,
-                    message: "login successful",
-                    token: "some unique token"
-                })
+                 if(isMatched){
+                    //todo: add jwt token
+                    res.send({ message: "login successful" });
+                    return;
+                 }else{
+                    console.log("user not found: ");
+                    res.status(401).send({ message: "Incorrect email or password" });
+                    return;
+                 }
+                }) 
+
+            } else { // user not already exist
+
+                console.log("user not found: ");
+                res.status(401).send({ message: "Incorrect email or password" });
                 return;
 
-            } else { // password incorrect
 
-                res.status(401).send({
-                    message: "incorrect password"
-                })
-                return;
             }
+        } else {
+            console.log("db error: ", err);
+            res.status(500).send({ message: "login failed, please try later" });
+            return;
         }
-    }
-
-    if (!isFound) {
-        res.status(404).send({
-            message: "user not found"
-        })
-        return;
-    }
+    })
+   
 })
 
 

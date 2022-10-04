@@ -38,7 +38,7 @@ export default function Login() {
       password: data.get('password'),
     });
 
-    let baseUrl = 'http://localhost:4000'
+    let baseUrl = 'https://react-weather-app-laila.netlify.app'
     try{
       let response = await axios.post(`${baseUrl}/login`,{
         email: data.get('email'),
