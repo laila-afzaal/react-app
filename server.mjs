@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const port = process.env.PORT || 4001;
+const port = process.env.PORT || 3003;
 
 
 const userSchema = new mongoose.Schema({

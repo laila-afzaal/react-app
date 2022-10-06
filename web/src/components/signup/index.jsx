@@ -46,6 +46,8 @@ export default function Signup() {
       let response = await axios.post(`${baseUrl}/signup`,{
         email: data.get('email'),
         password: data.get('password'),
+        firstName: data.get('firstName'),
+        lastName: data.get('lastName'),
       })
 
       console.log('response', response.data.message);
