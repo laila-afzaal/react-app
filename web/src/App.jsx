@@ -1,5 +1,6 @@
 import './App.css';
 import Home from "./components/home";
+import NavBar from "./components/navbar";
 import About from "./components/about";
 import Gallery from "./components/gallery";
 import Login from "./components/login";
@@ -7,24 +8,15 @@ import Signup from "./components/signup";
 import {
   BrowserRouter as Router,
   Routes,
-  Route,
-  Link
+  Route
 } from "react-router-dom";
+
+
 
 function App() {
   return (
-    <Router> 
-    <nav className='nav'>
-      <ul>
-        <li> <Link to="/"> Home </Link>             </li>
-        <li> <Link to="/about"> About </Link>       </li>
-        <li> <Link to="/gallery"> Gallery </Link>   </li>
-        
-        <li> <Link to="/login"> Login </Link>     </li>
-        <li> <Link to="/signup"> Signup </Link>   </li>
-      </ul>
-    </nav>
-
+    <Router>
+      <NavBar />
     <Routes>
   
       <Route path="/login" element={<Login />} /> 

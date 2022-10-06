@@ -133,7 +133,8 @@ app.post("/login", (req, res) => {
 
                  if(isMatched){
                     //todo: add jwt token
-                    res.send({ message: "login successful" });
+                    res.send({ message: "login successful",
+                    profile: data });
                     return;
                  }else{
                     console.log("user not found: ");
