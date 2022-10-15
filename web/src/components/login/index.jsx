@@ -13,6 +13,8 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
+import { useContext } from "react";
+import { GlobalContext } from '../../context';
 
 function Copyright(props) {
   return (
@@ -30,6 +32,9 @@ function Copyright(props) {
 const theme = createTheme();
 
 export default function Login() {
+
+  let { state, dispatch } = useContext(GlobalContext);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -46,6 +51,8 @@ export default function Login() {
       })
 
       console.log('response', response.data);
+
+      dispatch({type: "USER_LOGIN", payload: response.data.profile})
 
     } catch (e){
      console.log('error in api call', e)

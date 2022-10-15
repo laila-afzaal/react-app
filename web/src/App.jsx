@@ -1,7 +1,7 @@
 import './App.css';
 import Home from "./components/home";
 import NavBar from "./components/navbar";
-import About from "./components/about";
+import Profile from "./components/profile";
 import Gallery from "./components/gallery";
 import Login from "./components/login";
 import Signup from "./components/signup";
@@ -22,7 +22,7 @@ function App() {
       <Route path="/login" element={<Login />} /> 
       <Route path="/signup" element={<Signup />} /> 
       
-      <Route path="/about" element={<About />} /> 
+      <Route path="/profile" element={<Profile />} /> 
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/" element={<Home />} />
 

@@ -2,6 +2,9 @@ import express from "express"
 import cors from "cors"
 import mongoose from 'mongoose';
 import { stringToHash, varifyHash } from "bcrypt-inzi"
+import jwt from 'jsonwebtoken';
+
+const SECRET = process.env.SECRET || 'topsecret';
 
 const app = express();
 app.use(express.json());
@@ -25,6 +28,69 @@ const userSchema = new mongoose.Schema({
 const userModel = mongoose.model('User', userSchema);
 
 
+app.post("/login", (req, res) => {
+
+    let body = req.body;
+
+    if (!body.email || !body.password) { // null check - undefined, "", 0 , false, null , NaN
+        res.status(400).send(
+            `required fields missing, request example: 
+                {
+                    "email": "abc@abc.com",
+                    "password": "12345"
+                }`
+        );
+        return;
+    }
+
+     // check if user already exist // query email user
+     userModel.findOne({ email: body.email }, 
+        // {email:1, firstName:1, lastName:1, age:1, password:0 },
+        "email firstName lastName age password",
+        (err, data) => {
+        if (!err) {
+            console.log("data: ", data);
+
+            if (data) { // user found
+                varifyHash(body.password, data.password).then(isMatched => {
+
+                 console.log('isMatched:', isMatched);
+
+                 if(isMatched){
+                    //todo: add jwt token
+                    res.send({ message: "login successful",
+                    profile: {
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        age: data.age,
+                        _id: data._id
+                    }
+                 });
+                    return;
+                 }else{
+                    console.log("user not found: ");
+                    res.status(401).send({ message: "Incorrect email or password" });
+                    return;
+                 }
+                }) 
+
+            } else { // user not already exist
+
+                console.log("user not found: ");
+                res.status(401).send({ message: "Incorrect email or password" });
+                return;
+
+
+            }
+        } else {
+            console.log("db error: ", err);
+            res.status(500).send({ message: "login failed, please try later" });
+            return;
+        }
+    })
+   
+})
 
 app.post("/signup", (req, res) => {
 
@@ -99,66 +165,24 @@ app.get("/users", async (req, res) => {
     }
 })
 
+app.get("/user/:id", async (req, res) => {
 
+    try {
+        let user = await userModel.findOne({_id: req.params.id }).exec();
+        res.send(user);
 
-
-
-
-
-
-app.post("/login", (req, res) => {
-
-    let body = req.body;
-
-    if (!body.email || !body.password) { // null check - undefined, "", 0 , false, null , NaN
-        res.status(400).send(
-            `required fields missing, request example: 
-                {
-                    "email": "abc@abc.com",
-                    "password": "12345"
-                }`
-        );
-        return;
+    } catch (error) {
+        res.status(500).send({ message: "error getting users" });
     }
-
-     // check if user already exist // query email user
-     userModel.findOne({ email: body.email }, (err, data) => {
-        if (!err) {
-            console.log("data: ", data);
-
-            if (data) { // user found
-                varifyHash(body.password, data.password).then(isMatched => {
-
-                 console.log('isMatched:', isMatched);
-
-                 if(isMatched){
-                    //todo: add jwt token
-                    res.send({ message: "login successful",
-                    profile: data });
-                    return;
-                 }else{
-                    console.log("user not found: ");
-                    res.status(401).send({ message: "Incorrect email or password" });
-                    return;
-                 }
-                }) 
-
-            } else { // user not already exist
-
-                console.log("user not found: ");
-                res.status(401).send({ message: "Incorrect email or password" });
-                return;
-
-
-            }
-        } else {
-            console.log("db error: ", err);
-            res.status(500).send({ message: "login failed, please try later" });
-            return;
-        }
-    })
-   
 })
+
+
+
+
+
+
+
+
 
 
 
