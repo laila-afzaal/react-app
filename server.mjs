@@ -3,14 +3,20 @@ import cors from "cors"
 import mongoose from 'mongoose';
 import { stringToHash, varifyHash } from "bcrypt-inzi"
 import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 const SECRET = process.env.SECRET || 'topsecret';
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
 
-const port = process.env.PORT || 3003;
+app.use(cors({
+    origin: ['http://localhost:3000', "*"],
+    credentials: true
+}));
+
+const port = process.env.PORT || 5001;
 
 
 const userSchema = new mongoose.Schema({
@@ -57,7 +63,25 @@ app.post("/login", (req, res) => {
                  console.log('isMatched:', isMatched);
 
                  if(isMatched){
-                    //todo: add jwt token
+
+                    //jwt token
+
+                    var token = jwt.sign({
+                        email: body.email,
+                        _id: data._id,
+                        iat: Math.floor(Date.now() / 1000) - 30,
+                        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
+                    }, SECRET );
+
+                    console.log("token:", token);
+
+                    res.cookie('token', token, {
+                        maxAge: 86_400_000,
+                        httpOnly: true, // https only cookies are the most secure one
+                        sameSite:"none", // request from other networks will also be entertained
+                        secure:"true"  // secure 
+                    });
+
                     res.send({ message: "login successful",
                     profile: {
                         email: data.email,
@@ -90,6 +114,18 @@ app.post("/login", (req, res) => {
         }
     })
    
+})
+
+app.post("/logout", (req, res) => {
+
+    res.cookie('token', {
+        maxAge: 0,
+        httpOnly: true, // https only cookies are the most secure one
+        sameSite:"none", // request from other networks will also be entertained
+        secure:"true"  // secure 
+    });
+
+    res.send({ message: "logout successful" });
 })
 
 app.post("/signup", (req, res) => {
@@ -153,6 +189,35 @@ app.post("/signup", (req, res) => {
     })
 });
 
+app.use(function (req, res, next) {
+    console.log("req.cookies: ", req.cookies, req.signedCookies);
+    if (!req.cookies.jToken) {
+        res.status(401).send({ 
+            message: "include http-only credentials with every request"
+        })
+        return;
+    }
+    jwt.verify(req.cookies.Token, SERVER, function (err, decodedData) {
+        if (!err) {
+
+            console.log("decodedData: ", decodedData);
+
+            const issueDate = decodedData.iat / 1000;
+
+            if (decodedData < nowDate) { 
+                res.status(401).send("token expired")
+            } else { 
+
+                console.log('token approved');
+
+                req.body.token = decodedData
+                next();
+            }
+        } else {
+            res.status(401).send("invalid token")
+        }
+    });
+})
 
 app.get("/users", async (req, res) => {
 
@@ -165,10 +230,10 @@ app.get("/users", async (req, res) => {
     }
 })
 
-app.get("/user/:id", async (req, res) => {
+app.get("/profile", async (req, res) => {
 
     try {
-        let user = await userModel.findOne({_id: req.params.id }).exec();
+        let user = await userModel.findOne({_id: req.body.token._id }).exec();
         res.send(user);
 
     } catch (error) {
@@ -193,7 +258,7 @@ app.listen(port, () => {
 
 ///////////////////// - MongoDB Connection Code- ////////////////////////////////
 
-let dbURI = 'mongodb+srv://xyz:321@cluster0.zwm89fi.mongodb.net/reactAppDatabase?retryWrites=true&w=majority';
+let dbURI = process.env.MONGODBURI || 'mongodb+srv://xyz:321@cluster0.zwm89fi.mongodb.net/reactAppDatabase?retryWrites=true&w=majority';
 // let dbURI = 'mongodb://localhost/mydatabase';
 mongoose.connect(dbURI);
 
