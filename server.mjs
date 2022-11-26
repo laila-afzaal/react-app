@@ -6,17 +6,17 @@ import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 
 const SECRET = process.env.SECRET || 'topsecret';
+const port = process.env.PORT || 5000;
+
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: ['http://localhost:3000', "*"],
+    origin: ['http://localhost:3000', "*", "https://troubled-pear-bighorn-sheep.cyclic.app"],
     credentials: true
 }));
-
-const port = process.env.PORT || 5001;
 
 
 const userSchema = new mongoose.Schema({
@@ -75,7 +75,7 @@ app.post("/login", (req, res) => {
 
                     console.log("token:", token);
 
-                    res.cookie('token', token, {
+                    res.cookie('Token', token, {
                         maxAge: 86_400_000,
                         httpOnly: true, // https only cookies are the most secure one
                         sameSite:"none", // request from other networks will also be entertained
@@ -93,7 +93,7 @@ app.post("/login", (req, res) => {
                  });
                     return;
                  }else{
-                    console.log("user not found: ");
+                    console.log("user not found");
                     res.status(401).send({ message: "Incorrect email or password" });
                     return;
                  }
@@ -120,9 +120,7 @@ app.post("/logout", (req, res) => {
 
     res.cookie('token', {
         maxAge: 0,
-        httpOnly: true, // https only cookies are the most secure one
-        sameSite:"none", // request from other networks will also be entertained
-        secure:"true"  // secure 
+        httpOnly: true
     });
 
     res.send({ message: "logout successful" });

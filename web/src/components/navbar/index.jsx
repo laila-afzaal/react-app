@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import './index.css'
 import { useContext } from "react";
-import { GlobalContext } from '../../context';
+import { GlobalContext } from '../../context/context';
 import axios from 'axios';
 
 export default function NavBar() {
@@ -9,7 +9,7 @@ export default function NavBar() {
   let { state, dispatch } = useContext(GlobalContext);
 
   const logoutHandler = async () => {
-    let baseUrl = "http://localhost:3003";
+    let baseUrl = "http://localhost:3000";
     try {
       let response = await axios.post(`${baseUrl}/logout`, {},
         {

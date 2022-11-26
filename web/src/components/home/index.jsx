@@ -56,7 +56,7 @@ let Home = () => {
             setCityName(e.target.value)
           }}
         /> */}
-        <Button type='submit'>Get</Button>
+        <Button type='submit'>Get Weather</Button>
       </form>
 
       

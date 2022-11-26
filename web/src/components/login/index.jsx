@@ -14,7 +14,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
 import { useContext } from "react";
-import { GlobalContext } from '../../context';
+import { GlobalContext } from '../../context/context';
 
 function Copyright(props) {
   return (
@@ -43,13 +43,16 @@ export default function Login() {
       password: data.get('password'),
     });
 
-    let baseUrl = 'http://localhost:3003'
+    let baseUrl = 'http://localhost:3000'
     try{
-      let response = await axios.post(`${baseUrl}/login`,{
+      let response = await axios.post(`${baseUrl}/login`,
+      {
         email: data.get('email'),
         password: data.get('password'),
+      },
+      {
+        withCredentials: true
       })
-
       console.log('response', response.data);
 
       dispatch({type: "USER_LOGIN", payload: response.data.profile})

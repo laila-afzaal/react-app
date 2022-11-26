@@ -13,8 +13,9 @@ import {
 } from "react-router-dom";
 
 import { useEffect, useContext } from "react"
-import { GlobalContext } from './context';
+import { GlobalContext } from './context/context';
 import axios from "axios"
+import backgroundImage from "./assets/background.jpeg"
 
 function App() {
 
@@ -23,7 +24,7 @@ function App() {
   useEffect(() => {
 
     const getProfile = async () => {
-      let baseUrl = "http://localhost:3003";
+      let baseUrl = "http://localhost:3000";
       try {
         let response = await axios({
           url: `${baseUrl}/profile`,
@@ -52,43 +53,47 @@ function App() {
   }, [])
 
   return (
-    <Router>
-      <NavBar />
-    <Routes>
-  {(state.isLogin === true )?
-  <>
-      <Route path="/login" element={<Login />} /> 
-      <Route path="/signup" element={<Signup />} /> 
-      <Route path="/" element={<Home />} />
-      <Route path="*" element={<Navigate to="/" />} />
-  </>
-  :
-  null
-  }
+   <Router>
 
-  {(state.isLogin === false )?
-  <>
-      <Route path="/login" element={<Login />} /> 
-      <Route path="/signup" element={<Signup />} /> 
-      <Route path="*" element={<Navigate to="/login" />} />
-  </>
-  :
-  null
-  }
-  {(state.isLogin === null )?
-  <>
-     Loading
-  </>
-  :
-  null
-  }
+<NavBar />
+
+<Routes>
+
+      {(state.isLogin === true) ?
+          <>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/" element={<Home />} />
+              <Route path="*" element={<Navigate to="/" />} />
+          </>
+          :
+          null
+      }
       
-      <Route path="/profile" element={<Profile />} /> 
-      <Route path="/gallery" element={<Gallery />} />
+      {(state.isLogin === false) ?
+          <>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="*" element={<Navigate to="/login" />} />
+          </>
+          :
+          null
+      }
+         {(state.isLogin === null) ?
+          <>
+            <Route path="*" element={
+              <div className='loading'>
+                <img src={backgroundImage} alt="" />
+              </div>
+            } />
+          </>
+          :
+          null
+        }
+         </Routes>
+    </Router>
 
-    </Routes>
-  </Router>
-  );
+)
 }
 
 export default App;
