@@ -38,12 +38,14 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+
     console.log({
       email: data.get('email'),
       password: data.get('password'),
     });
 
-    let baseUrl = 'http://localhost:3000'
+    let baseUrl = 'http://localhost:3000';
+
     try{
       let response = await axios.post(`${baseUrl}/login`,
       {
@@ -55,7 +57,10 @@ export default function Login() {
       })
       console.log('response', response.data);
 
-      dispatch({type: "USER_LOGIN", payload: response.data.profile})
+      dispatch({
+        type: "USER_LOGIN",
+        payload: response.data.profile
+      })
 
     } catch (e){
      console.log('error in api call', e)

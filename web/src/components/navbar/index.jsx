@@ -34,7 +34,6 @@ export default function NavBar() {
         <ul>
           <li> <Link to="/">Home</Link>             </li>
           <li> <Link to="/profile">Profile</Link>       </li>
-          <li> <Link to="/gallery">Gallery</Link>   </li>
           <li> <Link to="/login" onClick={logoutHandler}>Logout</Link>  </li>
 
         </ul>

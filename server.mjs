@@ -10,11 +10,11 @@ const port = process.env.PORT || 5000;
 
 
 const app = express();
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json()); //parsing body
+app.use(cookieParser()); //parsing cookies
 
 app.use(cors({
-    origin: ['http://localhost:3000', "*", "https://troubled-pear-bighorn-sheep.cyclic.app"],
+    origin: ['http://localhost:3000', "*" ],
     credentials: true
 }));
 
@@ -50,7 +50,8 @@ app.post("/login", (req, res) => {
     }
 
      // check if user already exist // query email user
-     userModel.findOne({ email: body.email }, 
+     userModel.findOne(
+        { email: body.email }, 
         // {email:1, firstName:1, lastName:1, age:1, password:0 },
         "email firstName lastName age password",
         (err, data) => {
@@ -67,8 +68,8 @@ app.post("/login", (req, res) => {
                     //jwt token
 
                     var token = jwt.sign({
-                        email: body.email,
                         _id: data._id,
+                        email: body.email,
                         iat: Math.floor(Date.now() / 1000) - 30,
                         exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
                     }, SECRET );
@@ -118,12 +119,12 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
 
-    res.cookie('token', {
+    res.cookie('token', '', {
         maxAge: 0,
         httpOnly: true
     });
 
-    res.send({ message: "logout successful" });
+    res.send({ message: "Logout successful" });
 })
 
 app.post("/signup", (req, res) => {
@@ -188,19 +189,20 @@ app.post("/signup", (req, res) => {
 });
 
 app.use(function (req, res, next) {
-    console.log("req.cookies: ", req.cookies, req.signedCookies);
-    if (!req.cookies.jToken) {
+    console.log("req.cookies: ", req.cookies);
+
+    if (!req.cookies.Token) {
         res.status(401).send({ 
             message: "include http-only credentials with every request"
         })
         return;
     }
-    jwt.verify(req.cookies.Token, SERVER, function (err, decodedData) {
+    jwt.verify(req.cookies.Token, SECRET, function (err, decodedData) {
         if (!err) {
 
             console.log("decodedData: ", decodedData);
 
-            const issueDate = decodedData.iat / 1000;
+            const nowDate = new Date().getTime() / 1000;
 
             if (decodedData < nowDate) { 
                 res.status(401).send("token expired")

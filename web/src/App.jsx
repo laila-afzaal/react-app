@@ -1,8 +1,6 @@
 import './App.css';
-import Home from "./components/home";
 import NavBar from "./components/navbar";
 import Profile from "./components/profile";
-import Gallery from "./components/gallery";
 import Login from "./components/login";
 import Signup from "./components/signup";
 import {
@@ -62,8 +60,7 @@ function App() {
       {(state.isLogin === true) ?
           <>
               <Route path="/profile" element={<Profile />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<Home />} /> */}
               <Route path="*" element={<Navigate to="/" />} />
           </>
           :
