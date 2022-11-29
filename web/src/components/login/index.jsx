@@ -46,7 +46,7 @@ export default function Login() {
       });
 
       try {
-          let response = await axios.post(`${state.baseUrl}/login`,
+          let response = await axios.post(`${state.baseUrl}https://crowded-pink-turkey.cyclic.app/login, http://localhost:3000/login`,
               {
                   email: data.get('email'),
                   password: data.get('password'),

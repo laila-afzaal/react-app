@@ -15,7 +15,7 @@ app.use(express.json()); //parsing body
 app.use(cookieParser()); //parsing cookies
 
 app.use(cors({
-    origin: ['http://localhost:3000', "*" ],
+    origin: ['http://localhost:3000', 'https://ecommerce-app-6a346.web.app', "*" ],
     credentials: true
 }));
 

@@ -49,7 +49,7 @@ export default function Signup() {
       });
 
       try {
-          let response = await axios.post(`${state.baseUrl}/signup`, {
+          let response = await axios.post(`${state.baseUrl}https://crowded-pink-turkey.cyclic.app/signup, http://localhost:3000/singup`, {
               firstName: data.get('firstName'),
               lastName: data.get('lastName'),
               email: data.get('email'),

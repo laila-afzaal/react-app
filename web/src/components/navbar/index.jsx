@@ -10,7 +10,7 @@ export default function NavBar() {
 
   const logoutHandler = async () => {
       try {
-          let response = await axios.post(`${state.baseUrl}/logout`, {},
+          let response = await axios.post(`${state.baseUrl}https://crowded-pink-turkey.cyclic.app/logout, http://localhost:3000/logout`, {},
               {
                   withCredentials: true
               })

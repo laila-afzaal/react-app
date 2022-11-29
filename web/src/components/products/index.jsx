@@ -25,7 +25,7 @@ let Products = () => {
         const getAllProducts = async () => {
             try {
                 let response = await axios({
-                    url: `${state.baseUrl}/products`,
+                    url: `${state.baseUrl}https://crowded-pink-turkey.cyclic.app/products, http://localhost:3000/products`,
                     method: "get",
                     withCredentials: true
                 })
