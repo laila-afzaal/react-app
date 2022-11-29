@@ -9,7 +9,8 @@ let data = {
     user: {},
     isLogin: null,
     darkTheme: true,
-    myNum: 5
+    myNum: 5,
+    baseUrl: (window.location.href.indexOf("https") === -1) ? "http://localhost:5000" : "https://crowded-pink-turkey.cyclic.app"
 }
 
 export default function ContextProvider({ children }) {

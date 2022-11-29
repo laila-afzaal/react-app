@@ -28,7 +28,7 @@ function App() {
     const getProfile = async () => {
       try {
         let response = await axios({
-          url: `${state.baseUrl}http://localhost:3000/profile`,
+          url: `${state.baseUrl}http://localhost:3000/profile, https://crowded-pink-turkey.cyclic.app/profile`,
           method: "get",
           withCredentials: true
         })
