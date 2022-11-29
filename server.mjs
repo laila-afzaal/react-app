@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 
 const SECRET = process.env.SECRET || 'topsecret';
 const port = process.env.PORT || 5000;
+let dbURI = process.env.MONGODBURI || 'mongodb+srv://xyz:321@cluster0.zwm89fi.mongodb.net/reactAppDatabase?retryWrites=true&w=majority';
 
 
 const app = express();
@@ -31,8 +32,18 @@ const userSchema = new mongoose.Schema({
 
     createdOn: { type: Date, default: Date.now },
 });
-const userModel = mongoose.model('User', userSchema);
+const userModel = mongoose.model('Users', userSchema);
 
+const productSchema = new mongoose.Schema({
+
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: String, required: true },
+    code: { type: String, required: true },
+
+    createdOn: { type: Date, default: Date.now },
+});
+const productModel = mongoose.model('Products', productSchema);
 
 app.post("/login", (req, res) => {
 
@@ -49,77 +60,72 @@ app.post("/login", (req, res) => {
         return;
     }
 
-     // check if user already exist // query email user
-     userModel.findOne(
-        { email: body.email }, 
-        // {email:1, firstName:1, lastName:1, age:1, password:0 },
+    // check if user already exist // query email user
+    userModel.findOne(
+        { email: body.email },
+        // { email:1, firstName:1, lastName:1, age:1, password:0 },
         "email firstName lastName age password",
-        (err, data) => {
-        if (!err) {
-            console.log("data: ", data);
+        (err, user) => {
+            if (!err) {
+                console.log("user: ", user);
 
-            if (data) { // user found
-                varifyHash(body.password, data.password).then(isMatched => {
+                if (user) { // user found
+                    varifyHash(body.password, user.password).then(isMatched => {
 
-                 console.log('isMatched:', isMatched);
+                        console.log("isMatched: ", isMatched);
 
-                 if(isMatched){
+                        if (isMatched) {
 
-                    //jwt token
+                            var token = jwt.sign({
+                                _id: user._id,
+                                email: user.email,
+                                iat: Math.floor(Date.now() / 1000) - 30,
+                                exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
+                            }, SECRET);
 
-                    var token = jwt.sign({
-                        _id: data._id,
-                        email: body.email,
-                        iat: Math.floor(Date.now() / 1000) - 30,
-                        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
-                    }, SECRET );
+                            console.log("token: ", token);
 
-                    console.log("token:", token);
+                            res.cookie('Token', token, {
+                                maxAge: 86_400_000,
+                                httpOnly: true // https only cookies are the most secure one
+                            });
 
-                    res.cookie('Token', token, {
-                        maxAge: 86_400_000,
-                        httpOnly: true, // https only cookies are the most secure one
-                        sameSite:"none", // request from other networks will also be entertained
-                        secure:"true"  // secure 
-                    });
+                            res.send({
+                                message: "login successful",
+                                profile: {
+                                    email: user.email,
+                                    firstName: user.firstName,
+                                    lastName: user.lastName,
+                                    age: user.age,
+                                    _id: user._id
+                                }
+                            });
+                            return;
+                        } else {
+                            console.log("user not found");
+                            res.status(401).send({ message: "Incorrect email or password" });
+                            return;
+                        }
+                    })
 
-                    res.send({ message: "login successful",
-                    profile: {
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        age: data.age,
-                        _id: data._id
-                    }
-                 });
-                    return;
-                 }else{
+                } else { // user not already exist
                     console.log("user not found");
                     res.status(401).send({ message: "Incorrect email or password" });
                     return;
-                 }
-                }) 
-
-            } else { // user not already exist
-
-                console.log("user not found: ");
-                res.status(401).send({ message: "Incorrect email or password" });
+                }
+            } else {
+                console.log("db error: ", err);
+                res.status(500).send({ message: "login failed, please try later" });
                 return;
-
-
             }
-        } else {
-            console.log("db error: ", err);
-            res.status(500).send({ message: "login failed, please try later" });
-            return;
-        }
-    })
-   
-})
+        })
 
+
+
+})
 app.post("/logout", (req, res) => {
 
-    res.cookie('token', '', {
+    res.cookie('Token', '', {
         maxAge: 0,
         httpOnly: true
     });
@@ -149,12 +155,12 @@ app.post("/signup", (req, res) => {
     }
 
     // check if user already exist // query email user
-    userModel.findOne({ email: body.email }, (err, data) => {
+    userModel.findOne({ email: body.email }, (err, user) => {
         if (!err) {
-            console.log("data: ", data);
+            console.log("user: ", user);
 
-            if (data) { // user already exist
-                console.log("user already exist: ", data);
+            if (user) { // user already exist
+                console.log("user already exist: ", user);
                 res.status(400).send({ message: "user already exist,, please try a different email" });
                 return;
 
@@ -188,11 +194,13 @@ app.post("/signup", (req, res) => {
     })
 });
 
+
+// every request will go through this check point
 app.use(function (req, res, next) {
     console.log("req.cookies: ", req.cookies);
 
     if (!req.cookies.Token) {
-        res.status(401).send({ 
+        res.status(401).send({
             message: "include http-only credentials with every request"
         })
         return;
@@ -204,11 +212,11 @@ app.use(function (req, res, next) {
 
             const nowDate = new Date().getTime() / 1000;
 
-            if (decodedData < nowDate) { 
+            if (decodedData.exp < nowDate) {
                 res.status(401).send("token expired")
-            } else { 
+            } else {
 
-                console.log('token approved');
+                console.log("token approved");
 
                 req.body.token = decodedData
                 next();
@@ -219,21 +227,10 @@ app.use(function (req, res, next) {
     });
 })
 
-app.get("/users", async (req, res) => {
-
-    try {
-        let allUser = await userModel.find({}).exec();
-        res.send(allUser);
-
-    } catch (error) {
-        res.status(500).send({ message: "error getting users" });
-    }
-})
-
 app.get("/profile", async (req, res) => {
 
     try {
-        let user = await userModel.findOne({_id: req.body.token._id }).exec();
+        let user = await userModel.findOne({ _id: req.body.token._id }).exec();
         res.send(user);
 
     } catch (error) {
@@ -242,14 +239,118 @@ app.get("/profile", async (req, res) => {
 })
 
 
+app.get("/products", async (req, res) => {
+    try {
+        let products = await productModel.find({}).exec();
+        console.log("all product : ", products);
+
+        res.send({
+            message: "all products",
+            data: products
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: "failed to get product"
+        });
+    }
+})
+
+app.get("/product/:id", async (req, res) => {
+    try {
+        let product = await productModel
+            .findOne({ _id: req.params.id })
+            .exec();
+        console.log("product : ", product);
+
+        res.send({
+            message: "product",
+            data: product
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: "failed to get product"
+        });
+    }
+})
+
+app.post("/product", async (req, res) => {
+
+    console.log("product received: ", req.body);
+
+    let newProduct = new productModel({
+        name: req.body.name,
+        description: req.body.description,
+        price: req.body.price,
+        code: req.body.code,
+    })
+    try {
+        let response = await newProduct.save()
+        console.log("product added: ", response);
+
+        res.send({
+            message: "product added",
+            data: response
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: "failed to add product"
+        });
+    }
+})
+
+app.put("/product/:id", async (req, res) => {
+
+    console.log("data to be edited: ", req.body);
+
+    let update = {}
+    if (req.body.name) update.name = req.body.name
+    if (req.body.description) update.description = req.body.description
+    if (req.body.price) update.price = req.body.price
+    if (req.body.code) update.code = req.body.code
+
+    try {
+        let updated = await productModel
+            .findOneAndUpdate({ _id: req.params.id }, update, { new: true })
+            .exec();
+
+        console.log("updated product: ", updated);
+
+        res.send({
+            message: "product updated successfully",
+            data: updated
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: "failed to update product"
+        });
+    }
+})
+
+app.delete("/product/:id", async (req, res) => {
+
+    console.log("product received: ", req.body);
+
+    try {
+        let deleted = await productModel.deleteOne({ _id: req.params.id })
+        console.log("product deleted: ", deleted);
+
+        res.send({
+            message: "product deleted",
+            data: deleted
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: "failed to delete product"
+        });
+    }
+})
 
 
 
 
-
-
-
-
+app.use((req, res) => {
+    res.status(404).send("404 not found");
+})
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
@@ -258,7 +359,6 @@ app.listen(port, () => {
 
 ///////////////////// - MongoDB Connection Code- ////////////////////////////////
 
-let dbURI = process.env.MONGODBURI || 'mongodb+srv://xyz:321@cluster0.zwm89fi.mongodb.net/reactAppDatabase?retryWrites=true&w=majority';
 // let dbURI = 'mongodb://localhost/mydatabase';
 mongoose.connect(dbURI);
 

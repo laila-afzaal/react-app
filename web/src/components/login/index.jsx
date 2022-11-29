@@ -35,36 +35,35 @@ export default function Login() {
 
   let { state, dispatch } = useContext(GlobalContext);
 
+
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
 
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+      console.log({
+          email: data.get('email'),
+          password: data.get('password'),
+      });
 
-    let baseUrl = 'http://localhost:3000';
+      try {
+          let response = await axios.post(`${state.baseUrl}/login`,
+              {
+                  email: data.get('email'),
+                  password: data.get('password'),
+              },
+              {
+                  withCredentials: true
+              })
+          console.log("response: ", response.data);
 
-    try{
-      let response = await axios.post(`${baseUrl}/login`,
-      {
-        email: data.get('email'),
-        password: data.get('password'),
-      },
-      {
-        withCredentials: true
-      })
-      console.log('response', response.data);
+          dispatch({
+              type: "USER_LOGIN",
+              payload: response.data.profile
+          })
 
-      dispatch({
-        type: "USER_LOGIN",
-        payload: response.data.profile
-      })
-
-    } catch (e){
-     console.log('error in api call', e)
-    }
+      } catch (e) {
+          console.log("Error in api call: ", e);
+      }
   };
 
   return (

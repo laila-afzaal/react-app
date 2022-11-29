@@ -12,6 +12,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useContext } from "react";
+import { GlobalContext } from '../../context/context';
 import axios from 'axios';
 
 function Copyright(props) {
@@ -29,32 +31,35 @@ function Copyright(props) {
 
 const theme = createTheme();
 
+
 export default function Signup() {
+
+  let { state, dispatch } = useContext(GlobalContext);
+
+
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      firstName: data.get('firstName'),
-      lastName: data.get('lastName'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      console.log({
+          firstName: data.get('firstName'),
+          lastName: data.get('lastName'),
+          email: data.get('email'),
+          password: data.get('password'),
+          agree: data.get('agree'),
+      });
 
-  
-    let baseUrl = 'http://localhost:3000'
-    try{
-      let response = await axios.post(`${baseUrl}/signup`,{
-        email: data.get('email'),
-        password: data.get('password'),
-        firstName: data.get('firstName'),
-        lastName: data.get('lastName'),
-      })
+      try {
+          let response = await axios.post(`${state.baseUrl}/signup`, {
+              firstName: data.get('firstName'),
+              lastName: data.get('lastName'),
+              email: data.get('email'),
+              password: data.get('password'),
+          })
+          console.log("response: ", response.data.message);
 
-      console.log('response', response.data.message);
-
-    } catch (e){
-     console.log('error in api call', e)
-    }
+      } catch (e) {
+          console.log("Error in api call: ", e);
+      }
   };
 
   return (
